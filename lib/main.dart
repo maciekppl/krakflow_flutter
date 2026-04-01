@@ -1,73 +1,101 @@
-// cos popsulem w tym pliku - w nastepnym commicie postaramm się naprawić wszystko
+// generalna korekta do lab04 - teraz wszystko dziala
 
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
 
-
-  List<Task> tasks = [
-    Task(title: "Projekt Flutter", deadline: "jutro"),
-    Task(title: "Ćwiczenia z matematyki", deadline: "dzisiaj"),
-    Task(title: "Przeczytać o widgetach", deadline: "w tym tygodniu"),
-    Task(title: "Zrobić trening", deadline: "dzisiaj"),
-    Task(title: "Zjeść obiag", deadline: "jutro"),
-    Task(title: "Nauczyć się na egzamin", deadline: "w następnym tygodniu"),
-    Task(title: "Zrobić pranie", deadline: "jutro")
+  final List<Task> tasks = [
+    Task(title: "Projekt Flutter", deadline: "jutro", done: false, priority: "wysoki"),
+    Task(title: "Ćwiczenia z matematyki", deadline: "dzisiaj", done: true, priority: "wysoki"),
+    Task(title: "Przeczytać o widgetach", deadline: "w tym tygodniu", done: false, priority: "średni"),
+    Task(title: "Zrobić trening", deadline: "dzisiaj", done: false, priority: "niski"),
+    Task(title: "Zjeść obiag", deadline: "jutro", done: false, priority: "niski"),
+    Task(title: "Nauczyć się na egzamin", deadline: "w następnym tygodniu", done: false, priority: "niski")
   ];
 
-
-
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+
+    int doneCount = tasks.where((task) => task.done).length;
+
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text("KrakFlow"),
+        ),
+        body: Padding(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
 
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+              Text("Masz dziś ${tasks.length} zadania"),
+              SizedBox(height: 16),
+
+              Text(
+                "Dzisiejsze zadania",
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              SizedBox(height: 16),
+
+              Expanded(
+                child: ListView.builder(
+                  itemCount: tasks.length,
+                  itemBuilder: (context, index) {
+                    final task = tasks[index];
+
+                    return TaskCard(
+                      title: task.title,
+                      subtitle: "termin: ${task.deadline} | priorytet: ${task.priority}",
+                      icon: task.done
+                          ? Icons.check_circle
+                          : Icons.radio_button_unchecked,
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
-      home: Column(
-
-        children: [
-            ListView.builder(
-              itemCount: tasks.length,
-              itemBuilder: (context, index) {
-                final task = tasks[index];
-                return Card(child: Text("$task"));
-              }
-            )
-        ],
-
-      )
     );
   }
 }
 
-
-
-
 class Task {
   final String title;
   final String deadline;
-  Task({required this.title, required this.deadline});
+  final bool done;
+  final String priority;
+
+  Task({
+    required this.title,
+    required this.deadline,
+    required this.done,
+    required this.priority,
+  });
 }
-
-
 
 class TaskCard extends StatelessWidget {
   final String title;
   final String subtitle;
   final IconData icon;
+
   const TaskCard({
     super.key,
     required this.title,
     required this.subtitle,
     required this.icon,
   });
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -75,66 +103,6 @@ class TaskCard extends StatelessWidget {
         leading: Icon(icon),
         title: Text(title),
         subtitle: Text(subtitle),
-      ),
-    );
-  }
-}
-
-
-
-
-
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-
-    return Scaffold(
-      appBar: AppBar(
-
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-
-        title: Text(widget.title),
-      ),
-      body: Center(
-
-        child: Column(
-
-          mainAxisAlignment: .center,
-          children: [
-            const Text('KrakFlow'), Text('Organizacja studiów'),
-            Text('Dzisiejsze zadania'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
       ),
     );
   }
