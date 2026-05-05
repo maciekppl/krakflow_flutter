@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'task_repository.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 void main() {
   runApp(MyApp());
@@ -13,6 +15,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(home: HomeScreen());
   }
 }
+
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -144,28 +148,15 @@ class TaskCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: ListTile(
-        onTap: onTap,
-
-        leading: Checkbox(value: done, onChanged: onChanged),
-
-        title: Text(
-          title,
-          style: TextStyle(
-            decoration: done ? TextDecoration.lineThrough : TextDecoration.none,
-            color: done ? Colors.grey : Colors.black,
-          ),
-        ),
-
-        subtitle: Text(
-          subtitle,
-          style: TextStyle(color: done ? Colors.grey : Colors.black),
-        ),
-
-        trailing: Icon(Icons.chevron_right),
-      ),
-    );
+    return FutureBuilder<List<Task>>(
+        future: TaskApiService.fetchTasks(),
+        builder: (context, snapshot) {
+          final tasks = snapshot.data!;
+          return ListView(
+              children: tasks.map((task) {
+                return Text(task.title);
+              }).toList(),
+          );
   }
 }
 
