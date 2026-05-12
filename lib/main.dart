@@ -2,9 +2,18 @@ import 'package:flutter/material.dart';
 import 'task_repository.dart';
 import 'services/task_api_services.dart';
 import 'models/task.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
+import 'services/task_local_database.dart';
+import 'services/task_sync_service.dart';
 
-void main() {
-  runApp(MyApp());
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Hive.initFlutter(); // inicjalizacja
+  await Hive.openBox("tasks"); // otwarcie kontenera
+
+  runApp(const MyApp())
 }
 
 class MyApp extends StatelessWidget {
@@ -25,6 +34,20 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String selectedFilter = "wszystkie";
+
+  late Future<List<Task>> tasksFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    tasksFuture = loadTasks();
+  }
+
+  Future<List<Task>> loadTasks() async {
+    await TaskSyncService.loadInitialDataIfNeeded();
+    return TaskLocalDatabase.getTasks();
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -151,7 +174,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             Expanded(
               child: FutureBuilder<List<Task>>(
-                future: TaskApiService.fetchTasks(),
+                future: tasksFuture,
 
                 builder: (context, snapshot) {
                   // LOADING
@@ -268,7 +291,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
           if (newTask != null) {
             setState(() {
-              TaskRepository.tasks.add(newTask);
+              await TaskLocalDatabase.addTask(
+                newTask;
+              );
+
+              setState(() {
+                tasksFuture = loadTask();
+              });
             });
           }
         },
@@ -374,6 +403,7 @@ class AddTaskScreen extends StatelessWidget {
             ElevatedButton(
               onPressed: () {
                 final newTask = Task(
+                  id: DateTime.now().millisecondsSinceEpoch,
                   title: titleController.text,
                   deadline: deadlineController.text,
                   priority: priorityController.text,
