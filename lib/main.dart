@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'task_repository.dart';
+import 'services/task_api_services.dart';
+import 'models/task.dart';
 
 void main() {
   runApp(MyApp());
@@ -23,17 +25,9 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String selectedFilter = "wszystkie";
+
   @override
   Widget build(BuildContext context) {
-    List<Task> filteredTasks = TaskRepository.tasks;
-
-    if (selectedFilter == "wykonane") {
-      filteredTasks = TaskRepository.tasks.where((task) => task.done).toList();
-    } else if (selectedFilter == "do zrobienia") {
-      filteredTasks = TaskRepository.tasks.where((task) => !task.done).toList();
-    }
-    int doneCount = TaskRepository.tasks.where((task) => task.done).length;
-
     return Scaffold(
       appBar: AppBar(
         title: Text("KrakFlow"),
@@ -93,10 +87,6 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Masz dziś ${TaskRepository.tasks.length} zadania"),
-
-            Text("Ukończone $doneCount zadań"),
-
             SizedBox(height: 8),
 
             Row(
@@ -160,56 +150,108 @@ class _HomeScreenState extends State<HomeScreen> {
             SizedBox(height: 16),
 
             Expanded(
-              child: ListView.builder(
-                itemCount: filteredTasks.length,
-                itemBuilder: (context, index) {
-                  final task = filteredTasks[index];
+              child: FutureBuilder<List<Task>>(
+                future: TaskApiService.fetchTasks(),
 
-                  return Dismissible(
-                    key: ValueKey(task.title),
-                    direction:
-                        DismissDirection.endToStart, // tylko swipe w lewo
-                    onDismissed: (direction) {
-                      setState(() {
-                        TaskRepository.tasks.remove(task);
-                      });
+                builder: (context, snapshot) {
+                  // LOADING
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Usunięto: ${task.title}")),
-                      );
-                    },
-                    child: TaskCard(
-                      title: task.title,
-                      subtitle:
-                          "termin: ${task.deadline} | priorytet: ${task.priority}",
+                  // ERROR
+                  if (snapshot.hasError) {
+                    return Center(child: Text("Błąd: ${snapshot.error}"));
+                  }
 
-                      done: task.done,
+                  // BRAK DANYCH
+                  if (!snapshot.hasData) {
+                    return const Center(child: Text("Brak danych"));
+                  }
 
-                      onChanged: (value) {
-                        setState(() {
-                          task.done = value!;
-                        });
-                      },
+                  // DATA
+                  final tasks = snapshot.data!;
 
-                      onTap: () async {
-                        final Task? updatedTask = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => EditTaskScreen(task: task),
-                          ),
-                        );
+                  int doneCount = tasks.where((task) => task.done).length;
 
-                        if (updatedTask != null) {
-                          setState(() {
-                            final originalIndex = TaskRepository.tasks.indexOf(
-                              task,
+                  List<Task> filteredTasks = tasks;
+
+                  if (selectedFilter == "wykonane") {
+                    filteredTasks = tasks.where((task) => task.done).toList();
+                  } else if (selectedFilter == "do zrobienia") {
+                    filteredTasks = tasks.where((task) => !task.done).toList();
+                  }
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Masz dziś ${tasks.length} zadań"),
+
+                      Text("Ukończone $doneCount zadań"),
+
+                      SizedBox(height: 16),
+
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: filteredTasks.length,
+
+                          itemBuilder: (context, index) {
+                            final task = filteredTasks[index];
+
+                            return Dismissible(
+                              key: ValueKey(task.title),
+
+                              direction: DismissDirection.endToStart,
+
+                              onDismissed: (direction) {
+                                setState(() {
+                                  filteredTasks.remove(task);
+                                });
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text("Usunięto: ${task.title}"),
+                                  ),
+                                );
+                              },
+
+                              child: TaskCard(
+                                title: task.title,
+
+                                subtitle:
+                                    "termin: ${task.deadline} | priorytet: ${task.priority}",
+
+                                done: task.done,
+
+                                onChanged: (value) {
+                                  setState(() {
+                                    task.done = value!;
+                                  });
+                                },
+
+                                onTap: () async {
+                                  final Task? updatedTask =
+                                      await Navigator.push(
+                                        context,
+
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              EditTaskScreen(task: task),
+                                        ),
+                                      );
+
+                                  if (updatedTask != null) {
+                                    setState(() {
+                                      filteredTasks[index] = updatedTask;
+                                    });
+                                  }
+                                },
+                              ),
                             );
-
-                            TaskRepository.tasks[originalIndex] = updatedTask;
-                          });
-                        }
-                      },
-                    ),
+                          },
+                        ),
+                      ),
+                    ],
                   );
                 },
               ),
