@@ -35,7 +35,59 @@ class _HomeScreenState extends State<HomeScreen> {
     int doneCount = TaskRepository.tasks.where((task) => task.done).length;
 
     return Scaffold(
-      appBar: AppBar(title: Text("KrakFlow")),
+      appBar: AppBar(
+        title: Text("KrakFlow"),
+
+        actions: [
+          IconButton(
+            icon: Icon(Icons.delete),
+
+            onPressed: () {
+              showDialog(
+                context: context,
+
+                builder: (context) {
+                  return AlertDialog(
+                    title: Text("Potwierdzenie"),
+
+                    content: Text(
+                      "Czy na pewno chcesz usunąć wszystkie zadania?",
+                    ),
+
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+
+                        child: Text("Anuluj"),
+                      ),
+
+                      TextButton(
+                        onPressed: () {
+                          setState(() {
+                            TaskRepository.tasks.clear();
+                          });
+
+                          Navigator.pop(context);
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("Usunięto wszystkie zadania"),
+                            ),
+                          );
+                        },
+
+                        child: Text("Usuń"),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
+        ],
+      ),
       body: Padding(
         padding: EdgeInsets.all(16),
         child: Column(
@@ -44,8 +96,62 @@ class _HomeScreenState extends State<HomeScreen> {
             Text("Masz dziś ${TaskRepository.tasks.length} zadania"),
 
             Text("Ukończone $doneCount zadań"),
-            SizedBox(height: 16),
 
+            SizedBox(height: 8),
+
+            Row(
+              children: [
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      selectedFilter = "wszystkie";
+                    });
+                  },
+                  child: Text(
+                    "Wszystkie",
+                    style: TextStyle(
+                      color: selectedFilter == "wszystkie"
+                          ? Colors.blue
+                          : Colors.grey,
+                    ),
+                  ),
+                ),
+
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      selectedFilter = "do zrobienia";
+                    });
+                  },
+                  child: Text(
+                    "Do zrobienia",
+                    style: TextStyle(
+                      color: selectedFilter == "do zrobienia"
+                          ? Colors.blue
+                          : Colors.grey,
+                    ),
+                  ),
+                ),
+
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      selectedFilter = "wykonane";
+                    });
+                  },
+                  child: Text(
+                    "Wykonane",
+                    style: TextStyle(
+                      color: selectedFilter == "wykonane"
+                          ? Colors.blue
+                          : Colors.grey,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            SizedBox(height: 16),
             Text(
               "Dzisiejsze zadania",
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
@@ -95,7 +201,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
                         if (updatedTask != null) {
                           setState(() {
-                            TaskRepository.tasks[index] = updatedTask;
+                            final originalIndex = TaskRepository.tasks.indexOf(
+                              task,
+                            );
+
+                            TaskRepository.tasks[originalIndex] = updatedTask;
                           });
                         }
                       },
