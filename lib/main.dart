@@ -4,12 +4,15 @@ import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'models/task.dart';
 import 'services/task_local_database.dart';
 import 'services/task_sync_service.dart';
+import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Hive.initFlutter();
-  await Hive.openBox('tasks');
+  await Hive.openBox("tasks");
+
+  await NotificationService.init();
 
   runApp(const MyApp());
 }
@@ -99,9 +102,9 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   List<Task> _filterTasks(List<Task> tasks) {
@@ -235,19 +238,30 @@ class _HomeScreenState extends State<HomeScreen> {
                                     'termin: ${task.deadline} | priorytet: ${task.priority}',
                                 done: task.done,
                                 onChanged: (value) async {
-                                  await _updateTask(
-                                    task.copyWith(done: value ?? false),
+                                  final isDone = value ?? false;
+                                  final wasDone = task.done;
+
+                                  final updatedTask = task.copyWith(
+                                    done: isDone,
                                   );
+
+                                  await _updateTask(updatedTask);
+
+                                  if (!wasDone && isDone) {
+                                    await NotificationService.showTaskDoneNotification(
+                                      task.title,
+                                    );
+                                  }
                                 },
                                 onTap: () async {
                                   final updatedTask =
                                       await Navigator.push<Task>(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          EditTaskScreen(task: task),
-                                    ),
-                                  );
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              EditTaskScreen(task: task),
+                                        ),
+                                      );
 
                                   if (updatedTask != null) {
                                     await _updateTask(updatedTask);
@@ -387,10 +401,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _saveTask,
-              child: const Text('Zapisz'),
-            ),
+            ElevatedButton(onPressed: _saveTask, child: const Text('Zapisz')),
           ],
         ),
       ),
