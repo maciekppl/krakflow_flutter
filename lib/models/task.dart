@@ -15,22 +15,37 @@ class Task {
 
   Map<String, dynamic> toMap() {
     return {
-      "id": id,
-      "title": title,
-      "deadline": deadline,
-      "priority": priority,
-      "done": done,
+      'id': id,
+      'title': title,
+      'deadline': deadline,
+      'priority': priority,
+      'done': done,
     };
   }
 
-  factory Task.fromMap(Map map) {
+  Task copyWith({
+    int? id,
+    String? title,
+    String? deadline,
+    String? priority,
+    bool? done,
+  }) {
     return Task(
-      id: map["id"],
-      title: map["title"],
-      deadline: map["deadline"],
-      priority: map["priority"],
-      done: map["done"],
+      id: id ?? this.id,
+      title: title ?? this.title,
+      deadline: deadline ?? this.deadline,
+      priority: priority ?? this.priority,
+      done: done ?? this.done,
+    );
+  }
+
+  factory Task.fromMap(Map<dynamic, dynamic> map) {
+    return Task(
+      id: (map['id'] as num).toInt(),
+      title: map['title']?.toString() ?? '',
+      deadline: map['deadline']?.toString() ?? '',
+      priority: map['priority']?.toString() ?? '',
+      done: map['done'] == true,
     );
   }
 }
-

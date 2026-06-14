@@ -1,56 +1,48 @@
-// class Task {
-//   final String title;
-//   final String deadline;
-//   bool done;
-//   final String priority;
-
-//   Task({
-//     required this.title,
-//     required this.deadline,
-//     required this.done,
-//     required this.priority,
-//   });
-// }
-
 import 'models/task.dart';
 
 class TaskRepository {
   static List<Task> tasks = [
     Task(
-      title: "Projekt Flutter",
-      deadline: "jutro",
+      id: 1,
+      title: 'Projekt Flutter',
+      deadline: 'jutro',
       done: false,
-      priority: "wysoki",
+      priority: 'wysoki',
     ),
     Task(
-      title: "Ćwiczenia z matematyki",
-      deadline: "dzisiaj",
+      id: 2,
+      title: 'Cwiczenia z matematyki',
+      deadline: 'dzisiaj',
       done: true,
-      priority: "wysoki",
+      priority: 'wysoki',
     ),
     Task(
-      title: "Przeczytać o widgetach",
-      deadline: "w tym tygodniu",
+      id: 3,
+      title: 'Przeczytac o widgetach',
+      deadline: 'w tym tygodniu',
       done: false,
-      priority: "średni",
+      priority: 'sredni',
     ),
     Task(
-      title: "Zrobić trening",
-      deadline: "dzisiaj",
+      id: 4,
+      title: 'Zrobic trening',
+      deadline: 'dzisiaj',
       done: false,
-      priority: "niski",
+      priority: 'niski',
     ),
     Task(
-      title: "Zjeść obiag",
-      deadline: "jutro",
+      id: 5,
+      title: 'Zjesc obiad',
+      deadline: 'jutro',
       done: false,
-      priority: "niski",
+      priority: 'niski',
     ),
     Task(
-      title: "Nauczyć się na egzamin",
-      deadline: "w następnym tygodniu",
+      id: 6,
+      title: 'Nauczyc sie na egzamin',
+      deadline: 'w nastepnym tygodniu',
       done: false,
-      priority: "niski",
+      priority: 'niski',
     ),
   ];
 }
